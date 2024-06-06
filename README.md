@@ -1,6 +1,7 @@
 # Grinding process monitoring System: Anomaly detection and prediction
 
-##Overview
+## Overview
+
 This project trains an LSTM model for classification tasks by processing and analyzing sensor data from two distinct sampling rates (100KHz and 2000KHz). The labels for the data are NOK (label 1) or OK (label 0). The project involves loading, preprocessing, normalizing, combining, and sequencing the data, after which the processed data is used to train an LSTM model.
 1. For accessing the data, Google drive is mounted.
 2. There are two directories of data: 
