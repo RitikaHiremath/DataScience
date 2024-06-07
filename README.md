@@ -7,5 +7,5 @@ This project trains an LSTM model for classification tasks by processing and ana
 2. There are two directories of data: 
 OK_Measurements: Directory containing OK sensor data.
 NOK_Measurements: Directory containing NOK sensor data.
-3.Pre-processing of data includes Labeling and normalizing the data. Then the two data frames are combined together and sequenced in ascending order of timestamp.
+3. Pre-processing of data includes Labeling and normalizing the data. Then the two data frames are combined together and sequenced in ascending order of timestamp.
 4. Finally, an LSTM MODEL is defined and trained, along with plotting Training and validation metrics.
