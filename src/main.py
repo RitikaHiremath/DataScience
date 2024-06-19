@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from pre_processing import preprocess_data, normalize_data, create_labeled_sequences
-from model import create_lstm_model, train_model
+from model import create_lstm_model, train_model, evaluate_model
 from display import plot_accuracy, plot_loss
 
 # Define paths to data
@@ -38,6 +38,11 @@ history = train_model(model_combined, X_combined, y_combined)
 
 # Save the model
 model_combined.save('AEGuard.h5')
+
+# Evaluate the model
+X_test = X_combined  # Ideally, split your data into training and testing sets
+y_test = y_combined  # Ideally, split your data into training and testing sets
+evaluate_model(model_combined, X_test, y_test)
 
 # Plot results
 plot_accuracy(history)
