@@ -45,12 +45,23 @@ plot_accuracy(history)
 plot_loss(history)
 
 # Evaluate the model on training data
-train_loss, train_accuracy, train_precision, train_recall = model_combined.evaluate(X_train, y_train)
-print(f"Training Accuracy: {train_accuracy*100:.2f}%")
+train_loss, train_accuracy, train_precision, train_recall, train_f1 = evaluate_model(model_combined, X_train, y_train)
+print(f"Training Loss: {train_loss:.4f}, Training Accuracy: {train_accuracy*100:.2f}%, Training Precision: {train_precision:.2f}, Training Recall: {train_recall:.2f}, Training F1 Score: {train_f1:.2f}")
 
 # Evaluate the model on test data
-test_loss, test_accuracy, test_precision, test_recall = model_combined.evaluate(X_test, y_test)
-print(f"Test Accuracy: {test_accuracy*100:.2f}%")
+test_loss, test_accuracy, test_precision, test_recall, test_f1 = evaluate_model(model_combined, X_test, y_test)
+print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy*100:.2f}%, Test Precision: {test_precision:.2f}, Test Recall: {test_recall:.2f}, Test F1 Score: {test_f1:.2f}")
 
-# Evaluate the model and print classification report
-evaluate_model(model_combined, X_test, y_test)
+# Create a results table
+results = {
+    "Dataset": ["Training", "Test"],
+    "Loss": [train_loss, test_loss],
+    "Accuracy": [train_accuracy, test_accuracy],
+    "Precision": [train_precision, test_precision],
+    "Recall": [train_recall, test_recall],
+    "F1 Score": [train_f1, test_f1]
+}
+
+results_df = pd.DataFrame(results)
+print("\nResults Summary:")
+print(results_df)

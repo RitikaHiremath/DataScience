@@ -2,11 +2,11 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.metrics import Precision, Recall
-from sklearn.metrics import classification_report
 from loss_function import CustomLoss
-from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
+from sklearn.metrics import classification_report, precision_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
+
 
 def create_lstm_model(input_shape):
     model = Sequential()
@@ -44,13 +44,39 @@ def train_model(model, X_combined, y_combined):
     )
     
     return history
-def evaluate_model(model, X_test, y_test):
-    y_pred = model.predict(X_test)
+
+def evaluate_model(model, X, y):
+    y_pred = model.predict(X)
     y_pred_classes = (y_pred > 0.5).astype("int32")
-    print(classification_report(y_test, y_pred_classes))
+    
+    # Evaluate the model to get loss and accuracy
+    evaluation_metrics = model.evaluate(X, y, verbose=0)
+    loss = evaluation_metrics[0]
+    accuracy = evaluation_metrics[1]
+    
+    # Calculate precision, recall, and F1 score
+    precision = precision_score(y, y_pred_classes)
+    recall = recall_score(y, y_pred_classes)
+    f1 = f1_score(y, y_pred_classes)
+    
+    # Print the classification report
+    print(classification_report(y, y_pred_classes))
     
     # Plot confusion matrix
-    cm = confusion_matrix(y_test, y_pred_classes)
+    cm = confusion_matrix(y, y_pred_classes)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=[0, 1])
     disp.plot(cmap=plt.cm.Blues)
     plt.show()
+    
+    return loss, accuracy, precision, recall, f1
+
+# def evaluate_model(model, X_test, y_test):
+#     y_pred = model.predict(X_test)
+#     y_pred_classes = (y_pred > 0.5).astype("int32")
+#     print(classification_report(y_test, y_pred_classes))
+    
+#     # Plot confusion matrix
+#     cm = confusion_matrix(y_test, y_pred_classes)
+#     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=[0, 1])
+#     disp.plot(cmap=plt.cm.Blues)
+#     plt.show()
