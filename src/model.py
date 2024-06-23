@@ -69,14 +69,3 @@ def evaluate_model(model, X, y):
     plt.show()
     
     return loss, accuracy, precision, recall, f1
-
-# def evaluate_model(model, X_test, y_test):
-#     y_pred = model.predict(X_test)
-#     y_pred_classes = (y_pred > 0.5).astype("int32")
-#     print(classification_report(y_test, y_pred_classes))
-    
-#     # Plot confusion matrix
-#     cm = confusion_matrix(y_test, y_pred_classes)
-#     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=[0, 1])
-#     disp.plot(cmap=plt.cm.Blues)
-#     plt.show()
