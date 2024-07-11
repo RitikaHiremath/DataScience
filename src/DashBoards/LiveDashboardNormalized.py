@@ -131,8 +131,8 @@ def col_rename(dataset):
 
 
 # Define paths to data, please use your own path
-ok_data_path = 'C:/Users/lukas/Documents/Studium/Courses Master/DataScience/InputData/OK_Measurements'
-nok_data_path = 'C:/Users/lukas/Documents/Studium/Courses Master/DataScience/InputData/NOK_Measurements'
+ok_data_path = ''
+nok_data_path = ''
 
 # Preprocess data
 all_100KHzdata, all_2000KHzdata = preprocess_data(ok_data_path, nok_data_path)
