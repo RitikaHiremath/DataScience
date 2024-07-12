@@ -1,0 +1,11 @@
+universe = docker
+docker_image = python:3.8
+executable = ../Project/DataScience/src/run_script.sh
+output = model_output.txt
+error = job_error.txt
+log = job_log.txt
+requirements = (TARGET.HasDocker == true) && (TARGET.HasFileTransfer == true)
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files = ../Project/DataScience, ../Project/Data/NOK_Measurements, ../Project/Data/OK_Measurements.zip
+queue
