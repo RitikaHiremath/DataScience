@@ -34,8 +34,10 @@ model = load_model(os.path.join(src_dir, '..', 'AEGuard.keras'), custom_objects=
 
 # Define paths to data
 current_directory = os.getcwd()
-ok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'OK_Measurements'))
-nok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'NOK_Measurements'))
+# ok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'OK_Measurements'))
+# nok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'NOK_Measurements'))
+ok_data_path = '/Users/ritikahiremath/Downloads/Data/OK_Measurements'
+nok_data_path = '/Users/ritikahiremath/Downloads/Data/OK_Measurements'
 
 # Preprocess data
 all_100KHzdata, all_2000KHzdata = preprocess_data(ok_data_path, nok_data_path)
@@ -113,19 +115,19 @@ with tab0:
         # Add the new data point to the buffer
         buffer.append([Irms, L1, L2, L3, AEKi])
 
-        if len(buffer) >= sequence_length:
-            # When buffer is full, use the last `sequence_length` points for prediction
-            data = np.array(buffer[-sequence_length:])
-            data = data.reshape((1, sequence_length, len(feature_names)))  # Reshape the data to match the model's expected input shape
-            prediction = model.predict(data)
-            prediction_class = (prediction > 0.5).astype("int32")
+        # if len(buffer) >= sequence_length:
+        #     # When buffer is full, use the last `sequence_length` points for prediction
+        #     data = np.array(buffer[-sequence_length:])
+        #     data = data.reshape((1, sequence_length, len(feature_names)))  # Reshape the data to match the model's expected input shape
+        #     prediction = model.predict(data)
+        #     prediction_class = (prediction > 0.5).astype("int32")
 
-            predict = "Normal"
-            if prediction_class[0][0] == 1:
-                predict = "Anomaly"
-            st.markdown("Prediction:", prediction_class[0][0])
-            st.markdown("### Model Prediction : <strong style='color:tomato;'>{}</strong>".format(
-                predict), unsafe_allow_html=True)
+        #     predict = "Normal"
+        #     if prediction_class[0][0] == 1:
+        #         predict = "Anomaly"
+        #     st.markdown("Prediction:", prediction_class[0][0])
+        #     st.markdown("### Model Prediction : <strong style='color:tomato;'>{}</strong>".format(
+        #         predict), unsafe_allow_html=True)
 
         with placeholder.container():
             sensor1, sensor2, sensor3, sensor4, sensor5 = st.columns(5)
@@ -138,6 +140,22 @@ with tab0:
 
             previous = [Irms, L1, L2, L3, AEKi]
 
+            buffer.append([Irms, L1, L2, L3, AEKi])
+
+            if len(buffer) >= sequence_length:
+                # When buffer is full, use the last `sequence_length` points for prediction
+                data = np.array(buffer[-sequence_length:])
+                data = data.reshape((1, sequence_length, len(feature_names)))  # Reshape the data to match the model's expected input shape
+                prediction = model.predict(data)
+                prediction_class = (prediction > 0.5).astype("int32")
+
+                predict = "Normal"
+                if prediction_class[0][0] == 1:
+                    predict = "Anomaly"
+                st.markdown("Prediction:", prediction_class[0][0])
+                st.markdown("### Model Prediction : <strong style='color:tomato;'>{}</strong>".format(
+                    predict), unsafe_allow_html=True)
+            
             st.markdown("### Feature plot - Live ")
 
             col1, col2 = st.columns(2)

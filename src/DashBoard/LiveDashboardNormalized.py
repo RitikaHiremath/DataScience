@@ -32,8 +32,11 @@ def load_and_label_data(base_path, label, max_files=None):
             break
 
         timestamp_folder_path = os.path.join(base_path, timestamp_folder, "raw")
-        timestamp = timestamp_folder.split('_')[0] + '_' + timestamp_folder.split('_')[1]
-        timestamp = pd.to_datetime(timestamp, format='%Y.%m.%d_%H.%M.%S')
+        try:
+            timestamp = timestamp_folder.split('_')[0] + '_' + timestamp_folder.split('_')[1]
+            timestamp = pd.to_datetime(timestamp, format='%Y.%m.%d_%H.%M.%S')
+        except ValueError:
+            continue
 
         # Process 2000KHz data
         df_2000KHz = pd.read_parquet(os.path.join(timestamp_folder_path, "Sampling2000KHz_AEKi-0.parquet"))
@@ -131,8 +134,8 @@ def col_rename(dataset):
 
 
 # Define paths to data, please use your own path
-ok_data_path = ''
-nok_data_path = ''
+ok_data_path = '/Users/ritikahiremath/Downloads/Data/OK_Measurements'
+nok_data_path = '/Users/ritikahiremath/Downloads/Data/OK_Measurements'
 
 # Preprocess data
 all_100KHzdata, all_2000KHzdata = preprocess_data(ok_data_path, nok_data_path)

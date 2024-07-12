@@ -12,11 +12,14 @@ def load_and_label_data(base_path, label, max_files=None):
     for timestamp_folder in os.listdir(base_path):
         if max_files and file_counter >= max_files:
             break
-
+        
         timestamp_folder_path = os.path.join(base_path, timestamp_folder, "raw")
-        timestamp = timestamp_folder.split('_')[0] + '_' + timestamp_folder.split('_')[1]
-        timestamp = pd.to_datetime(timestamp, format='%Y.%m.%d_%H.%M.%S')
-
+        
+        try:
+            timestamp = timestamp_folder.split('_')[0] + '_' + timestamp_folder.split('_')[1]
+            timestamp = pd.to_datetime(timestamp, format='%Y.%m.%d_%H.%M.%S')
+        except ValueError:
+            continue
         # Process 2000KHz data
         df_2000KHz = pd.read_parquet(os.path.join(timestamp_folder_path, "Sampling2000KHz_AEKi-0.parquet"))
         df_2000KHz_grouped = df_2000KHz.groupby(df_2000KHz.index // 10000).mean().reset_index(drop=True)
