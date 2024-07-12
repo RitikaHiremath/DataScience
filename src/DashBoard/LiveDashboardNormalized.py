@@ -1,7 +1,6 @@
-# develop reference： https://github.com/sunny2309/ml_dashboard_streamlit/blob/main/streamlit_ml_dashboard.py
-# video: https://www.youtube.com/watch?v=gdNknCDf2LU
-
 import os
+import random
+import time
 
 import streamlit as st
 
@@ -122,9 +121,18 @@ def evaluate_model(model, X, y):
     return accuracy, precision, recall, f1
 
 
+def col_rename(dataset):
+    dataset = dataset.rename(columns={'Irms_Grinding_rate100000_clipping0_batch0': 'Irms_rate',
+                                      'Grinding spindle current L1_rate100000_clipping0_batch0': 'L1_rate',
+                                      'Grinding spindle current L2_rate100000_clipping0_batch0': 'L2_rate',
+                                      'Grinding spindle current L3_rate100000_clipping0_batch0': 'L3_rate',
+                                      'AEKi_rate2000000_clipping0_batch0': 'AEKi_rate'})
+    return dataset
+
+
 # Define paths to data, please use your own path
-ok_data_path = 'C:/.../OK_Measurements'
-nok_data_path = 'C:/.../NOK_Measurements'
+ok_data_path = ''
+nok_data_path = ''
 
 # Preprocess data
 all_100KHzdata, all_2000KHzdata = preprocess_data(ok_data_path, nok_data_path)
@@ -146,12 +154,14 @@ normalized_data = shuffle(normalized_data, random_state=42)
 # X = normalized_data.iloc[:, 1:-1]
 # y = normalized_data['label']
 
-feature_names = ['Irms_Grinding_rate100000_clipping0_batch0',
-                 'Grinding spindle current L1_rate100000_clipping0_batch0',
-                 'Grinding spindle current L2_rate100000_clipping0_batch0',
-                 'Grinding spindle current L3_rate100000_clipping0_batch0',
-                 'AEKi_rate2000000_clipping0_batch0']
+normalized_data = col_rename(normalized_data)
 
+combined_data = col_rename(combined_data)
+
+combined_data = combined_data.reindex(['timestamp', 'Irms_rate', 'L1_rate', 'L2_rate', 'L3_rate',
+                                       'AEKi_rate', 'label'], axis=1)
+
+feature_names = ['Irms_rate', 'L1_rate', 'L2_rate', 'L3_rate', 'AEKi_rate']
 target = ['label']
 target_names = ['0', '1']
 
@@ -169,13 +179,9 @@ y_test_preds = xgb_classifier.predict(X_test)
 
 # Evaluate the model on training data
 train_accuracy, train_precision, train_recall, train_f1 = evaluate_model(xgb_classifier, X_train, y_train)
-print(
-    f"Training Accuracy: {train_accuracy * 100:.2f}%, Training Precision: {train_precision:.2f}, Training Recall: {train_recall:.2f}, Training F1 Score: {train_f1:.2f}")
 
 # Evaluate the model on test data
 test_accuracy, test_precision, test_recall, test_f1 = evaluate_model(xgb_classifier, X_test, y_test)
-print(
-    f"Test Accuracy: {test_accuracy * 100:.2f}%, Test Precision: {test_precision:.2f}, Test Recall: {test_recall:.2f}, Test F1 Score: {test_f1:.2f}")
 
 # Create a results table
 results = {
@@ -187,24 +193,107 @@ results = {
 }
 
 results_df = pd.DataFrame(results)
-print("\nResults Summary:")
-print(results_df)
+# print("\nResults Summary:")
+# print(results_df)
 
-st.title("Grinding Status :red[Prediction] :bar_chart: :chart_with_upwards_trend: :tea: :coffee:")
+st.title("Grinding Status :red[Prediction]")
 st.markdown("Predict Grinding Status Using Acoustic Emission Values")
 
-tab0, tab1, tab2, tab3 = st.tabs(
-    ["Dataset :clipboard:", "Model Performance with Metrics :clipboard:", "Global Performance :weight_lifter:",
-     "Local Performance :bicyclist:"])
+tab0, tab1, tab2, tab3, tab4 = st.tabs(
+    ["Live Detection", "Dataset", "Model Performance", "Global Performance",
+     "Local Prediction"])
+
 with tab0:
-    st.header("Grinding Dataset")
-    st.write(normalized_data)
+    # creating a single-element container
+    placeholder = st.empty()
+
+    previous = [0] * 5
+
+    # top-level filters
+    label_filter = st.selectbox("Select the date", pd.unique(normalized_data['timestamp'].dt.date))
+
+    # dataframe filter
+    normalized_data = normalized_data[normalized_data['timestamp'].dt.date == label_filter]
+
+    # near real-time / live feed simulation
+    # simulated live detection: default by 60 seconds, can also use while loop to run endlessly
+    for seconds in range(60):
+        # create to be displayed parameters
+        Irms = random.uniform(normalized_data['Irms_rate'].min(), normalized_data['Irms_rate'].max())
+        L1 = random.uniform(normalized_data['L1_rate'].min(), normalized_data['L1_rate'].max())
+        L2 = random.uniform(normalized_data['L2_rate'].min(), normalized_data['L2_rate'].max())
+        L3 = random.uniform(normalized_data['L3_rate'].min(), normalized_data['L3_rate'].max())
+        AEKi = random.uniform(normalized_data['AEKi_rate'].min(), normalized_data['AEKi_rate'].max())
+
+        with placeholder.container():
+            # create five columns
+            sensor1, sensor2, sensor3, sensor4, sensor5 = st.columns(5)
+
+            # fill in those five columns with respective metrics
+            # to better display the parameter value, multiple them with 100-105,
+            # otherwise they are too small to be shown in the dashboard
+            sensor1.metric(label="Irms", value=Irms, delta=Irms - previous[0])
+            sensor2.metric(label="L1_rate", value=L1, delta=L1 - previous[1])
+            sensor3.metric(label="L2_rate", value=L2, delta=L2 - previous[2])
+            sensor4.metric(label="L3_rate", value=L3, delta=L3 - previous[3])
+            sensor5.metric(label="AEKi_rate2", value=AEKi, delta=AEKi - previous[4])
+
+            # update "previous" list
+            previous = [Irms, L1, L2, L3, AEKi]
+
+            # create two columns for classification
+
+            data = [[Irms, L1, L2, L3, AEKi]]
+            df = pd.DataFrame(data,
+                              columns=['Irms_rate', 'L1_rate', 'L2_rate', 'L3_rate',
+                                       'AEKi_rate'])
+            prediction = xgb_classifier.predict(df.to_numpy())
+
+            predict = "Normal"
+            if prediction[0] == 1:
+                predict = "Anomaly"
+            st.markdown("prediction:", prediction[0])
+            st.markdown("### Model Prediction : <strong style='color:tomato;'>{}</strong>".format(
+                predict), unsafe_allow_html=True)
+            st.markdown("### Feature plot - Live ")
+
+            # fig = px.line(combined_data, y=feature_names, title='Feature Values Over Time')
+            # st.plotly_chart(fig)
+            col1, col2 = st.columns(2)
+            # Shuffle the normalized data for plots
+            normalized_data = shuffle(normalized_data, random_state=42)
+            with col1:
+                st.header("Irms")
+                st.line_chart(normalized_data, y='Irms_rate')
+
+            with col2:
+                st.header("AEKi_rate2")
+                st.line_chart(normalized_data, y='AEKi_rate')
+
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.header("Spindle L1_rate")
+                st.line_chart(normalized_data, y='L1_rate')
+
+            with col2:
+                st.header("Spindle L2_rate")
+                st.line_chart(normalized_data, y='L2_rate')
+
+            with col3:
+                st.header("Spindle L3_rate")
+                st.line_chart(normalized_data, y='L3_rate')
+
+        time.sleep(1)
 
 with tab1:
+    st.header("Grinding Dataset")
+    st.write(combined_data)
+
+with tab2:
     st.header("Model Performance")
     st.write(results_df)
 
-with tab2:
+with tab3:
     st.header("Confusion Matrix | Feature Importances")
     col1, col2 = st.columns(2)
     with col1:
@@ -220,11 +309,11 @@ with tab2:
                                                   x_tick_rotation=90)
         st.pyplot(feat_imp_fig, use_container_width=True)
 
-    st.divider()
-    st.header("Classification Report")
-    st.code(classification_report(y_test, y_test_preds))
+    #st.divider()
+    #st.header("Classification Report")
+    #st.code(classification_report(y_test, y_test_preds))
 
-with tab3:
+with tab4:
     sliders = []
     col1, col2 = st.columns(2)
     with col1:
@@ -238,8 +327,12 @@ with tab3:
 
         prediction = xgb_classifier.predict([sliders])
         with col1:
+            predict = "Normal"
+            if target_names[prediction[0]] == 1:
+                predict = "Anomaly"
+            st.markdown("prediction:", prediction[0])
             st.markdown("### Model Prediction : <strong style='color:tomato;'>{}</strong>".format(
-                target_names[prediction[0]]), unsafe_allow_html=True)
+                predict), unsafe_allow_html=True)
 
         probs = xgb_classifier.predict_proba([sliders])
         probability = probs[0][prediction[0]]

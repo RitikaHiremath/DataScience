@@ -1,9 +1,9 @@
-import tensorflow as tf
 from tensorflow.keras.losses import Loss
+import tensorflow as tf
 
 class CustomLoss(Loss):
-    def __init__(self, name="custom_loss"):
-        super().__init__(name=name)
+    def __init__(self, reduction=tf.keras.losses.Reduction.AUTO, name="custom_loss"):
+        super().__init__(reduction=reduction, name=name)
 
     def call(self, y_true, y_pred):
         y_true = tf.cast(tf.reshape(y_true, [-1, 1]), dtype=tf.float32)  # Ensure y_true is the same shape and type as y_pred
@@ -13,7 +13,6 @@ class CustomLoss(Loss):
         total_loss = main_loss + auxiliary_loss
         return total_loss
 
-    @tf.function
     def calculate_auxiliary_loss(self, y_true, y_pred):
         mse_loss = tf.reduce_mean(tf.square(y_true - y_pred))
         return mse_loss
