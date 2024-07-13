@@ -38,7 +38,7 @@ current_directory = os.getcwd()
 # ok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'OK_Measurements'))
 # nok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'NOK_Measurements'))
 ok_data_path = '/Users/ritikahiremath/Downloads/Data/OK_Measurements'
-nok_data_path = '/Users/ritikahiremath/Downloads/Data/OK_Measurements'
+nok_data_path = '/Users/ritikahiremath/Downloads/Data/NOK_Measurements'
 
 # Preprocess data
 all_100KHzdata, all_2000KHzdata = preprocess_data(ok_data_path, nok_data_path)
