@@ -8,10 +8,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lime import lime_tabular
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 from tensorflow.keras.models import load_model
 from sklearn.utils import shuffle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-
+from sklearn.inspection import permutation_importance
 current_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(current_dir, '..', '..', 'src'))
 if src_dir not in sys.path:
@@ -203,7 +204,40 @@ with tab3:
         st.pyplot(conf_mat_fig, use_container_width=True)
 
     with col2:
-        st.write("Feature importances are not available for this model.")
+        try:
+            y_pred = (model.predict(X_test) > 0.5).astype("int32")
+            baseline_accuracy = accuracy_score(y_test, y_pred)
+
+            # Function to compute permutation importance
+            def permutation_importance(model, X_test, y_test, baseline_score, n_repeats=10):
+                importances = np.zeros(X_test.shape[2])
+
+                for i in range(X_test.shape[2]):
+                    scores = np.zeros(n_repeats)
+                    for n in range(n_repeats):
+                        X_permuted = X_test.copy()
+                        np.random.shuffle(X_permuted[:, :, i])
+                        y_permuted_pred = (model.predict(X_permuted) > 0.5).astype("int32")
+                        scores[n] = accuracy_score(y_test, y_permuted_pred)
+                    importances[i] = baseline_score - np.mean(scores)
+
+                return importances
+
+            # Calculate permutation importances
+            importances = permutation_importance(model, X_test, y_test, baseline_accuracy)
+
+            # Print feature importances
+            # for i, imp in enumerate(importances):
+            #     st.write(feature_names[i],f": {imp}")
+
+            fig, ax = plt.subplots()
+            ax.bar(feature_names, importances)    
+            ax.set_xlabel('Feature')
+            ax.set_ylabel('Importance')
+            ax.set_title('Feature Importances for LSTM Model')
+            st.pyplot(fig)
+        except EOFError:
+            st.write("Feature importances are not available for this model.")
 
 with tab4:
     sliders = []
