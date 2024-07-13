@@ -13,6 +13,7 @@ from tensorflow.keras.models import load_model
 from sklearn.utils import shuffle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.inspection import permutation_importance
+
 current_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(current_dir, '..', '..', 'src'))
 if src_dir not in sys.path:
@@ -22,6 +23,7 @@ from pre_processing import preprocess_data, combine_and_interpolate_data, normal
 from model import evaluate_model
 from loss_function import CustomLoss
 
+
 def col_rename(dataset):
     dataset = dataset.rename(columns={'Irms_Grinding_rate100000_clipping0_batch0': 'Irms_rate',
                                       'Grinding spindle current L1_rate100000_clipping0_batch0': 'L1_rate',
@@ -30,6 +32,7 @@ def col_rename(dataset):
                                       'AEKi_rate2000000_clipping0_batch0': 'AEKi_rate'})
     return dataset
 
+
 # Load the trained Keras model
 model = load_model(os.path.join(src_dir, '..', 'AEGuard.keras'), custom_objects={'CustomLoss': CustomLoss})
 
@@ -37,8 +40,8 @@ model = load_model(os.path.join(src_dir, '..', 'AEGuard.keras'), custom_objects=
 current_directory = os.getcwd()
 # ok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'OK_Measurements'))
 # nok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'NOK_Measurements'))
-ok_data_path = '/Users/ritikahiremath/Downloads/Data/OK_Measurements'
-nok_data_path = '/Users/ritikahiremath/Downloads/Data/NOK_Measurements'
+ok_data_path = 'C:/Users/lukas/Documents/Studium/Courses Master/DataScience/InputData/OK_Measurements'
+nok_data_path = 'C:/Users/lukas/Documents/Studium/Courses Master/DataScience/InputData/NOK_Measurements'
 
 # Preprocess data
 all_100KHzdata, all_2000KHzdata = preprocess_data(ok_data_path, nok_data_path)
@@ -63,6 +66,13 @@ feature_names = ['Irms_rate', 'L1_rate', 'L2_rate', 'L3_rate', 'AEKi_rate']
 target = ['label']
 target_names = ['0', '1']
 
+# get current data for anomalies detection table
+curr_time = time.localtime()
+curr_date = time.strftime("%d.%m.%Y_%H:%M:%S", curr_time)
+# empty table for storing detected anomalies
+anomalies = pd.DataFrame(columns=['Detected_time', 'Irms_rate', 'L1_rate', 'L2_rate', 'L3_rate',
+                                  'AEKi_rate'])
+
 # Create labeled sequences
 sequence_length = 10
 X, y = create_labeled_sequences(normalized_data, sequence_length)
@@ -71,7 +81,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_
 
 train_loss, train_accuracy, train_precision, train_recall, train_f1 = evaluate_model(model, X_train, y_train)
 test_loss, test_accuracy, test_precision, test_recall, test_f1 = evaluate_model(model, X_test, y_test)
-
 
 # Create a results table
 results = {
@@ -146,17 +155,24 @@ with tab0:
             if len(buffer) >= sequence_length:
                 # When buffer is full, use the last `sequence_length` points for prediction
                 data = np.array(buffer[-sequence_length:])
-                data = data.reshape((1, sequence_length, len(feature_names)))  # Reshape the data to match the model's expected input shape
+                data = data.reshape((1, sequence_length,
+                                     len(feature_names)))  # Reshape the data to match the model's expected input shape
                 prediction = model.predict(data)
                 prediction_class = (prediction > 0.5).astype("int32")
 
                 predict = "Normal"
                 if prediction_class[0][0] == 1:
                     predict = "Anomaly"
+                    new_anomalies = {'Detected_time': curr_date, 'Irms_rate': Irms, 'L1_rate': L1, 'L2_rate': L2,
+                                     'L3_rate': L3, 'AEKi_rate': AEKi}
+                    anomalies.loc[len(anomalies)] = new_anomalies
                 st.markdown("Prediction:", prediction_class[0][0])
                 st.markdown("### Model Prediction : <strong style='color:tomato;'>{}</strong>".format(
                     predict), unsafe_allow_html=True)
-            
+
+            st.header(Detected :red[Anomalies]")
+            st.write(anomalies)
+
             st.markdown("### Feature plot - Live ")
 
             col1, col2 = st.columns(2)
@@ -208,6 +224,7 @@ with tab3:
             y_pred = (model.predict(X_test) > 0.5).astype("int32")
             baseline_accuracy = accuracy_score(y_test, y_pred)
 
+
             # Function to compute permutation importance
             def permutation_importance(model, X_test, y_test, baseline_score, n_repeats=10):
                 importances = np.zeros(X_test.shape[2])
@@ -223,6 +240,7 @@ with tab3:
 
                 return importances
 
+
             # Calculate permutation importances
             importances = permutation_importance(model, X_test, y_test, baseline_accuracy)
 
@@ -231,7 +249,7 @@ with tab3:
             #     st.write(feature_names[i],f": {imp}")
 
             fig, ax = plt.subplots()
-            ax.bar(feature_names, importances)    
+            ax.bar(feature_names, importances)
             ax.set_xlabel('Feature')
             ax.set_ylabel('Importance')
             ax.set_title('Feature Importances for LSTM Model')
@@ -257,7 +275,8 @@ with tab4:
         if len(buffer) >= sequence_length:
             # When buffer is full, use the last `sequence_length` points for prediction
             data = np.array(buffer[-sequence_length:])
-            data = data.reshape((1, sequence_length, len(feature_names)))  # Reshape the data to match the model's expected input shape
+            data = data.reshape(
+                (1, sequence_length, len(feature_names)))  # Reshape the data to match the model's expected input shape
             prediction = model.predict(data)
             prediction_class = (prediction > 0.5).astype("int32")
 
@@ -279,8 +298,10 @@ with tab4:
                 X_train.reshape(-1, sequence_length * len(feature_names)),  # Flattened shape
                 mode="classification",
                 class_names=target_names,
-                feature_names=[f'{f}_{i}' for i in range(sequence_length) for f in feature_names]  # Adjust feature names
+                feature_names=[f'{f}_{i}' for i in range(sequence_length) for f in feature_names]
+                # Adjust feature names
             )
+
 
             # Define a custom prediction function for LIME
             def custom_predict(data):
@@ -290,8 +311,10 @@ with tab4:
                 probabilities = model.predict(reshaped_data)
                 return np.hstack([1 - probabilities, probabilities])
 
+
             # Ensure sliders are in the correct shape for LIME
             sliders_array = np.array(buffer[-sequence_length:]).flatten().reshape(1, -1)
-            explanation = explainer.explain_instance(sliders_array[0], custom_predict, num_features=sequence_length * len(feature_names), top_labels=2)
+            explanation = explainer.explain_instance(sliders_array[0], custom_predict,
+                                                     num_features=sequence_length * len(feature_names), top_labels=2)
             interpretation_fig = explanation.as_pyplot_figure(label=prediction_class[0][0])
             st.pyplot(interpretation_fig, use_container_width=True)
