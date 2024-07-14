@@ -6,13 +6,11 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from lime import lime_tabular
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from tensorflow.keras.models import load_model
 from sklearn.utils import shuffle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from sklearn.inspection import permutation_importance
 
 current_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(current_dir, '..', '..', 'src'))
@@ -37,11 +35,13 @@ def col_rename(dataset):
 model = load_model(os.path.join(src_dir, '..', 'AEGuard.keras'), custom_objects={'CustomLoss': CustomLoss})
 
 # Define paths to data
-current_directory = os.getcwd()
+# current_directory = os.getcwd()
 # ok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'OK_Measurements'))
 # nok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'NOK_Measurements'))
-ok_data_path = 'C:/Users/lukas/Documents/Studium/Courses Master/DataScience/InputData/OK_Measurements'
-nok_data_path = 'C:/Users/lukas/Documents/Studium/Courses Master/DataScience/InputData/NOK_Measurements'
+
+# Please use your own data path or use the alternative method with os.path.abspath()function to access your data
+ok_data_path = ''
+nok_data_path = ''
 
 # Preprocess data
 all_100KHzdata, all_2000KHzdata = preprocess_data(ok_data_path, nok_data_path)
@@ -115,7 +115,7 @@ with tab0:
     # near real-time / live feed simulation
     buffer = []
 
-    for seconds in range(60):
+    for seconds in range(120):
         Irms = random.uniform(normalized_data_filtered['Irms_rate'].min(), normalized_data_filtered['Irms_rate'].max())
         L1 = random.uniform(normalized_data_filtered['L1_rate'].min(), normalized_data_filtered['L1_rate'].max())
         L2 = random.uniform(normalized_data_filtered['L2_rate'].min(), normalized_data_filtered['L2_rate'].max())
@@ -124,20 +124,6 @@ with tab0:
 
         # Add the new data point to the buffer
         buffer.append([Irms, L1, L2, L3, AEKi])
-
-        # if len(buffer) >= sequence_length:
-        #     # When buffer is full, use the last `sequence_length` points for prediction
-        #     data = np.array(buffer[-sequence_length:])
-        #     data = data.reshape((1, sequence_length, len(feature_names)))  # Reshape the data to match the model's expected input shape
-        #     prediction = model.predict(data)
-        #     prediction_class = (prediction > 0.5).astype("int32")
-
-        #     predict = "Normal"
-        #     if prediction_class[0][0] == 1:
-        #         predict = "Anomaly"
-        #     st.markdown("Prediction:", prediction_class[0][0])
-        #     st.markdown("### Model Prediction : <strong style='color:tomato;'>{}</strong>".format(
-        #         predict), unsafe_allow_html=True)
 
         with placeholder.container():
             sensor1, sensor2, sensor3, sensor4, sensor5 = st.columns(5)
@@ -170,7 +156,7 @@ with tab0:
                 st.markdown("### Model Prediction : <strong style='color:tomato;'>{}</strong>".format(
                     predict), unsafe_allow_html=True)
 
-            st.header(Detected :red[Anomalies]")
+            st.header("Detected :red[Anomalies]")
             st.write(anomalies)
 
             st.markdown("### Feature plot - Live ")
@@ -244,10 +230,6 @@ with tab3:
             # Calculate permutation importances
             importances = permutation_importance(model, X_test, y_test, baseline_accuracy)
 
-            # Print feature importances
-            # for i, imp in enumerate(importances):
-            #     st.write(feature_names[i],f": {imp}")
-
             fig, ax = plt.subplots()
             ax.bar(feature_names, importances)
             ax.set_xlabel('Feature')
@@ -294,15 +276,6 @@ with tab4:
                 st.metric(label="Model Confidence", value="{:.2f} %".format(probability * 100),
                           delta="{:.2f} %".format((probability - 0.5) * 100))
 
-            explainer = lime_tabular.LimeTabularExplainer(
-                X_train.reshape(-1, sequence_length * len(feature_names)),  # Flattened shape
-                mode="classification",
-                class_names=target_names,
-                feature_names=[f'{f}_{i}' for i in range(sequence_length) for f in feature_names]
-                # Adjust feature names
-            )
-
-
             # Define a custom prediction function for LIME
             def custom_predict(data):
                 num_samples = data.shape[0]
@@ -310,11 +283,3 @@ with tab4:
                 # Ensure the model returns probabilities
                 probabilities = model.predict(reshaped_data)
                 return np.hstack([1 - probabilities, probabilities])
-
-
-            # Ensure sliders are in the correct shape for LIME
-            sliders_array = np.array(buffer[-sequence_length:]).flatten().reshape(1, -1)
-            explanation = explainer.explain_instance(sliders_array[0], custom_predict,
-                                                     num_features=sequence_length * len(feature_names), top_labels=2)
-            interpretation_fig = explanation.as_pyplot_figure(label=prediction_class[0][0])
-            st.pyplot(interpretation_fig, use_container_width=True)
