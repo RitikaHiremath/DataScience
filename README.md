@@ -24,7 +24,7 @@ In the first part, this project trains an LSTM model for classification tasks by
 **To run the on Cluster:**
 1. Upload the code files on the cluster as a zip << scp "code.zip" dsbwl24_team004@conduit.cs.uni-saarland.de:Project >>
 2. The code and data are already there for this account (dsbwl24_team004@conduit.cs.uni-saarland.de)
-3. Unzip the code <<unzip code.zip??
+3. Unzip the code << unzip code.zip >>
 4. Make sure the data is available in Project/Data folder
 5. Navigate to the folder scripts
 6. Submit the job << condor_submit cluster_script.sub>>
