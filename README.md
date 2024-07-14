@@ -15,10 +15,12 @@ In the first part, this project trains an LSTM model for classification tasks by
 1. Navigate to DataScience/src
 2. Replace the path with your data path in main.py
 3. Run the command: <<  C:/Users/user/AppData/Local/Programs/Python/Python312/python.exe "/path/to//DataScience/src/main.py" >>
+
 **To run the on Jupyter notebook:**
 1.  Navigate to DataScience/src/ipynb_notebooks
 2.  Open LSTM_Networks_Anomaly_Detection.ipynb
 3.  Click on "Open in Colab" and run
+   
 **To run the on Cluster:**
 1. Upload the code files on the cluster as a zip << scp "code.zip" dsbwl24_team004@conduit.cs.uni-saarland.de:Project >>
 2. The code and data are already there for this account (dsbwl24_team004@conduit.cs.uni-saarland.de)
@@ -33,6 +35,7 @@ In the first part, this project trains an LSTM model for classification tasks by
 1. Navigate to DataScience/src/DashBoard
 2. Replace the path with your data path in Dashboard.py
 3. Run the command: << steamlit run Dashboard.py >>
+
 In the second part, a simulated live dashboard was build with the open source tool Streamlit. The implememted dashboard shows how our model would do near-real-time grinding anomaly detection tasks. The dashboard also shows the most important model performances measured with metrics that will be displayed in our dashboard. In addition, we also implemented a local prediction tab to show how a change of a single feature would affect our model prediction results. <br/>
 The current Dashboard has 5 tabs:<br/>
 Tab 1: conducts the live detection task, where the simulated data will be feed into our AEGaurd model and the predicted results will be shown and updated in every second by default; The value change of the sensor data will also be displayed; The occurred anomalies will also be captured and stored in a table with capture time and sensor data; The overall change of sensor data will also be visualized with plots in this tab; A filter is set to help change the date for feeding corresponding sensor data for live simulation.<br/>
@@ -48,4 +51,6 @@ numpy: 1.26.4<br/>
 scikit-learn: 1.5.0<br/>
 scipy: 1.11.4<br/>
 
+## Video Link
+https://drive.google.com/file/d/1iwIIF56HtG2O4slQ1bwcwwcMGr1WYWIP/view?usp=sharing
 
