@@ -36,13 +36,13 @@ def col_rename(dataset):
 model = load_model(os.path.join(src_dir, '..', 'AEGuard.keras'), custom_objects={'CustomLoss': CustomLoss})
 
 # Define paths to data
-# current_directory = os.getcwd()
-# ok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'OK_Measurements'))
-# nok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'NOK_Measurements'))
+current_directory = os.getcwd()
+ok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'OK_Measurements'))
+nok_data_path = os.path.abspath(os.path.join(src_dir, '..', '..', 'Data', 'NOK_Measurements'))
 
-# Please use your own data path or use the alternative method with os.path.abspath()function to access your data
-ok_data_path = ''
-nok_data_path = ''
+# Alternative: please use your own data path your data
+# ok_data_path = ''
+# nok_data_path = ''
 
 # Preprocess data
 all_100KHzdata, all_2000KHzdata = preprocess_data(ok_data_path, nok_data_path)
