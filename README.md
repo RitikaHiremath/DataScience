@@ -21,7 +21,7 @@ Tab 4: includes the confusion matrix for measuring model performance. In additio
 Tab 5: puts the normalized max and min values of each sensor in sliders, where we can change the value of a sensor for anomaly detection tasks at a time. In this way, we can see how would a value change of a single feature can affect the overall prediction result (which corresponds to the partial dependence analysis from the general explainable AI method). In addition to that, we show the prediction result, our model confidence, and its (confidence) change. By this means, our "black-box" model AEGuard can be more transparent and interpretable, which ought to be more trustworthy.
 
 ## Required Python Libraries' Version for runing Dash Board (especially windows system) 
-For Windows system, if the newest libraries' version not fully support oura application, please consider using the following libraries' version to avoid possible problems:<br/>
+For Windows system, if the newest libraries' version not fully support our application, please consider using the following libraries' version to avoid possible problems:<br/>
 matplotlib: 3.9.0<br/>
 numpy: 1.26.4<br/>
 scikit-learn: 1.5.0<br/>
